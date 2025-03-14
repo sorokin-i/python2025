@@ -14,13 +14,16 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
 
-async def hello(update: Update):
-    log.info(f"hello func called by {update.effective_user.full_name}")
-    print()
+async def hello(update: Update, context: ContextTypes):
+    user = update.effective_user
+    log.info(f"hello func called by {user.full_name}")
+    await update.message.reply_text(f"Привет, {user.full_name}!")
 
-async def echo(update: Update):
-    log.info(f"echo func called by {update.effective_user.full_name}")
-    print()
+
+async def echo(update: Update, context: ContextTypes):
+    user = update.effective_user
+    log.info(f"echo func called by {user.full_name}")
+    await update.message.reply_text(update.message.text)
 
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("hello", hello))
