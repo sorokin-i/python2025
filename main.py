@@ -35,8 +35,10 @@ async def show_keyboard(update: Update, context: ContextTypes):
     user = update.effective_user
     log.info(f"help func called by {user}")
     text = "Нажми на кнопку!"
-    buttons = []
-    keyboard = InlineKeyboardMarkup([InlineKeyboardButton("OooooO")])
+    buttons = [[InlineKeyboardButton(text="1", callback_data="one"), InlineKeyboardButton(text="2", callback_data="two")],
+               [InlineKeyboardButton(text="3", callback_data="three"), InlineKeyboardButton(text="4", callback_data="four")],
+               [InlineKeyboardButton(text="5", callback_data="five"), InlineKeyboardButton(text="6", callback_data="six")]]
+    keyboard = InlineKeyboardMarkup(buttons)
     await update.message.reply_text(text, reply_markup=keyboard)
 
 app = ApplicationBuilder().token(TOKEN).build()
