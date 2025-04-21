@@ -42,10 +42,10 @@ async def show_keyboard(update: Update, context: ContextTypes):
     keyboard = InlineKeyboardMarkup(buttons)
     await update.message.reply_text(text, reply_markup=keyboard)
 
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler(["start", "help"], help))
-app.add_handler(CommandHandler("hello", hello))
-app.add_handler(CommandHandler("show_keyboard", show_keyboard))
-app.add_handler(events_application_handler)
+bot = ApplicationBuilder().token(TOKEN).build()
+bot.add_handler(CommandHandler(["start", "help"], help))
+bot.add_handler(CommandHandler("hello", hello))
+bot.add_handler(CommandHandler("show_keyboard", show_keyboard))
+bot.add_handler(events_application_handler)
 
-app.run_polling()
+bot.run_polling()
