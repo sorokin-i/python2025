@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 async def hello(update: Update, context: ContextTypes):
     user = update.effective_user
     log.info(f"hello func called by {user}")
-    await update.message.reply_text(f"<b>Привет,</b> {user.full_name}!", parse_mode=ParseMode.HTML)
+    await update.message.reply_text(str(update.effective_chat.id))
 
 async def help(update: Update, context: ContextTypes):
     user = update.effective_user
