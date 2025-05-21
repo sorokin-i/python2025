@@ -4,8 +4,10 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ConversationHandler, ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 from telegram.constants import ParseMode
 
-from config import TOKEN, GROUP_ID
+from config import GROUP_ID
 from services import get_workers
+from ui import *
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -16,65 +18,62 @@ log = logging.getLogger(__name__)
 
 
 WAIT_FOR_DATE, WAIT_FOR_PLACE, WAIT_FOR_EQUIPMENT, WAIT_FOR_PERSON = range(4)
-place_keyboard = InlineKeyboardMarkup([[InlineKeyboardButton(text="Зал", callback_data="Зал")], [InlineKeyboardButton(text="Двор", callback_data="Двор")]])
 
 async def ask_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"ask_date is triggered by {update.effective_user}")
-    text = "Когда будет мероприятие?"
-    await update.message.reply_text(text)
+    await update.message.reply_text(ASK_DATE_TEXT)
     return WAIT_FOR_DATE
 
 async def get_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"get_date is triggered by {update.effective_user}")
     day = update.message.text
     context.user_data["day"] = day
-    text = f"Понял, мероприятие будет {day}"
+    text = f"{GET_DATE_TEXT} {day}"
     await update.message.reply_text(text)
     return await ask_place(update, context)
 
 async def ask_place(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"ask_place is triggered by {update.effective_user}")
-    text = "Где будет мероприятие?"
-    await update.message.reply_text(text, reply_markup=place_keyboard)
+    await update.message.reply_text(ASK_PLACE_TEXT, reply_markup=PLACE_KB)
     return WAIT_FOR_PLACE
 
 async def get_place(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"get_place is triggered by {update.effective_user}")
     place = update.callback_query.data
+    #if place == "other":
+        #place = get_another_place(update, context)
     context.user_data["place"] = place
-    text = f"Понял, мероприятие будет в {place}е"
+    text = f"{GET_PLACE_TEXT} {place}"
     await context.bot.send_message(chat_id=update.effective_user.id, text=text)
     return await ask_equipment(update, context)
 
+#async def get_another_place(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #await context.bot.send_message(chat_id=update.effective_user.id, text=GET_ANOTHER_PLACE_TEXT)
+
+
 async def ask_equipment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"ask_equipment is triggered by {update.effective_user}")
-    text = "Какое оборудование требуется?"
-    await context.bot.send_message(chat_id=update.effective_user.id, text=text)
+    await context.bot.send_message(chat_id=update.effective_user.id, text=ASK_EQUIPMENT_TEXT)
     return WAIT_FOR_EQUIPMENT
 
 async def get_equipment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"get_equipment is triggered by {update.effective_user}")
     equipment = update.message.text
     context.user_data["equipment"] = equipment
-    text = f"Понял, нужно: {equipment}"
+    text = f"{GET_EQUIPMENT_TEXT} {equipment}"
     await update.message.reply_text(text)
     return await ask_person(update, context)
 
 async def ask_person(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"ask_person is triggered by {update.effective_user}")
-    text = "Кого бы вы хотели видеть?"
-    workers = [[InlineKeyboardButton(text="Любой", callback_data="Любой")]]
-    for worker in get_workers():
-        workers.append([InlineKeyboardButton(text=worker.name, callback_data=worker.name)])
-    person_kb = InlineKeyboardMarkup(workers)
-    await update.message.reply_text(text, reply_markup=person_kb)
+    await update.message.reply_text(ASK_PERSON_TEXT, reply_markup=PERSON_KB)
     return WAIT_FOR_PERSON
 
 async def get_person(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"get_person is triggered by {update.effective_user}")
     person = update.callback_query.data
     context.user_data["person"] = person
-    text = f"Понял, вы хотите чтобы мероприятие сопровождал(а) {person}"
+    text = f"{GET_PERSON_TEXT} {person}"
     await context.bot.send_message(chat_id=update.effective_user.id, text=text)
     return await register_application(update, context)
 
@@ -83,20 +82,21 @@ async def get_person(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def register_application(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"register_application is triggered by {update.effective_user}")
-    text = [f"Заявка принята!",
-            f"Скоро с вами свяжутся.\n",
-            f"Ваши данные:",
-            f"Дата: {context.user_data['day']}",
-            f"Место: {context.user_data['place']}",
-            f"Оборудование: {context.user_data['equipment']}",
-            f"Работник: {context.user_data['person']}\n"]
-    await context.bot.send_message(chat_id=update.effective_user.id, text="\n".join(text))
-    text2 = [f"Новая заявка!\n",
-            f"Дата: {context.user_data['day']}",
-            f"Место: {context.user_data['place']}",
-            f"Оборудование: {context.user_data['equipment']}",
-            f"Работник: {context.user_data['person']}\n"]
-    await context.bot.send_message(chat_id=GROUP_ID, text="\n".join(text2))
+    USER_APPLICATION_TEXT = [f"Заявка принята!",
+                             f"Скоро с вами свяжутся.\n",
+                             f"Ваши данные:",
+                             f"Дата: {context.user_data['day']}",
+                             f"Место: {context.user_data['place']}",
+                             f"Оборудование: {context.user_data['equipment']}",
+                             f"Работник: {context.user_data['person']}\n"]
+
+    GROUP_APPLICATION_TEXT = [f"Новая заявка!\n",
+                              f"Дата: {context.user_data['day']}",
+                              f"Место: {context.user_data['place']}",
+                              f"Оборудование: {context.user_data['equipment']}",
+                              f"Работник: {context.user_data['person']}\n"]
+    await context.bot.send_message(chat_id=update.effective_user.id, text="\n".join(USER_APPLICATION_TEXT))
+    await context.bot.send_message(chat_id=GROUP_ID, text="\n".join(GROUP_APPLICATION_TEXT))
     context.user_data.clear()
     return ConversationHandler.END
 
